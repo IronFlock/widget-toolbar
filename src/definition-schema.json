@@ -1,0 +1,317 @@
+{
+    "title": "Toolbar Configuration",
+    "description": "A bar of controls that users click to change things: buttons, switches, sliders, choice groups and dropdowns. Each tool writes its value into a table column, which the app's backend receives as a new row, and/or sets a URL parameter that other widgets on the page filter on. The tools show the stored or current value, and tools that do not fit the tile move into a menu.",
+    "aiSelection": {
+        "dataShape": "No input data needed. Each tool writes: targetColumn gets the clicked value (plus extraColumns and sharedColumns such as a record id, in the same row), parameterKey gets it as a URL parameter. To show what is stored, bind a tool's value to the latest value of the same column for the same record. choice and dropdown options can be bound to a table (label, value).",
+        "useWhen": [
+            "The controls of an app page in one bar: commands, modes, set points and view filters together, such as Start/Stop buttons, an Auto switch and a speed slider writing to a commands table the backend subscribes to.",
+            "A view bar whose switches, choice groups (Day | Week | Month) and dropdowns set URL parameters that filter the other widgets: each filtered widget gets a filterAnd condition with useFilter: true and the parameterKey as value."
+        ],
+        "notFor": [
+            "One stand-alone on/off control, or a direct call of a device function — use widget-switch.",
+            "Several values typed in and saved together, text, dates or files — use widget-form.",
+            "Picking a date or a time range — use widget-filter-calendar.",
+            "One filter dropdown on its own, such as picking the machine a page shows — use widget-filter-dropdown.",
+            "Opening other pages — use widget-navbar or widget-navbutton."
+        ]
+    },
+    "type": "object",
+    "properties": {
+        "orientation": {
+            "title": "Orientation",
+            "description": "Horizontal draws one row of tools, for a bar about 48 px high across the page. Vertical stacks them in a column, for a tool strip at the side. Default horizontal.",
+            "type": "string",
+            "enum": ["horizontal", "vertical"],
+            "enumLabels": ["Horizontal", "Vertical"],
+            "default": "horizontal",
+            "dataDrivenDisabled": true,
+            "order": 1
+        },
+        "size": {
+            "title": "Size",
+            "description": "How large the tools are drawn: 'small' for dense bars, 'normal' (the default), 'big' for touch screens and wall displays.",
+            "type": "string",
+            "enum": ["small", "normal", "big"],
+            "enumLabels": ["Small", "Normal", "Big"],
+            "default": "normal",
+            "dataDrivenDisabled": true,
+            "order": 2
+        },
+        "shape": {
+            "title": "Button Shape",
+            "description": "The corners of the buttons, choice groups, dropdowns and switches: 'round' for pill-shaped ends (the default), 'rounded' for slightly rounded corners, 'square' for sharp corners.",
+            "type": "string",
+            "enum": ["round", "rounded", "square"],
+            "enumLabels": ["Round", "Rounded", "Square"],
+            "default": "round",
+            "dataDrivenDisabled": true,
+            "order": 3
+        },
+        "alignment": {
+            "title": "Alignment",
+            "description": "Where the tools sit along the bar when there is room to spare: at the start (left or top, the default), in the centre, or at the end. A Spacer tool pushes the tools after it to the end instead.",
+            "type": "string",
+            "enum": ["start", "center", "end"],
+            "enumLabels": ["Start", "Center", "End"],
+            "default": "start",
+            "dataDrivenDisabled": true,
+            "order": 4
+        },
+        "accentColor": {
+            "title": "Accent Color",
+            "description": "Colour of filled buttons, switches that are on, sliders and selected choices. A tool's own Color wins over it. Leave it empty to use the theme's first colour.",
+            "type": "color",
+            "dataDrivenDisabled": true,
+            "order": 5
+        },
+        "sharedColumns": {
+            "title": "Shared Columns",
+            "description": "Columns written with every tool's row that goes into the same table, such as the id of the record or machine this page shows, so you set them once instead of per tool. A tool that writes to another table ignores them. While one of them has no value (its binding has not delivered one yet), the tools writing to its table are disabled, so no row is written without its key.",
+            "type": "array",
+            "dataDrivenDisabled": true,
+            "order": 6,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "targetColumn": {
+                        "title": "Shared Column",
+                        "description": "The column this value goes into. It decides the table: only tools writing to the same table write it.",
+                        "type": "targetColumn",
+                        "dataDrivenDisabled": true,
+                        "order": 1
+                    },
+                    "value": {
+                        "title": "Shared Value",
+                        "description": "What every row of that table gets in this column: a constant, or bound to a column, such as the id of the record shown on this page. Converted to the column's type (number, true/false).",
+                        "type": "string",
+                        "order": 2
+                    }
+                }
+            }
+        },
+        "tools": {
+            "title": "Tools",
+            "description": "The tools in the bar, in order. Each is a button, switch, slider, choice group, dropdown, label, separator or spacer. Tools that do not fit the tile move, from the end, into a menu opened by the ⋮ button.",
+            "type": "array",
+            "dataDrivenDisabled": true,
+            "order": 7,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "title": "Label",
+                        "description": "Text on or next to the tool, such as 'Start', 'Auto mode' or 'Speed'. Buttons with an icon drop it when the bar gets tight; it stays the tool's accessible name.",
+                        "type": "string",
+                        "order": 1
+                    },
+                    "control": {
+                        "title": "Tool Type",
+                        "description": "What the tool is. 'button' (the default) writes its Button Value on each click. 'switch' writes the On or Off Value. 'slider' writes a number between Minimum and Maximum when released. 'choice' shows the options side by side and 'dropdown' as a list; both write the picked option's value. 'label' is text, 'separator' a line between groups, 'spacer' pushes the tools after it to the end; these three write nothing.",
+                        "type": "string",
+                        "enum": ["button", "switch", "slider", "choice", "dropdown", "label", "separator", "spacer"],
+                        "enumLabels": [
+                            "Button",
+                            "Switch",
+                            "Slider",
+                            "Choice Group",
+                            "Dropdown",
+                            "Label",
+                            "Separator",
+                            "Spacer"
+                        ],
+                        "default": "button",
+                        "dataDrivenDisabled": true,
+                        "order": 2
+                    },
+                    "icon": {
+                        "title": "Icon",
+                        "description": "Name of a Material Symbols icon shown before the label, such as 'play_arrow', 'stop', 'tune' or 'restart_alt' (see fonts.google.com/icons). A button with an icon can shrink to the icon alone when the bar is tight.",
+                        "type": "string",
+                        "dataDrivenDisabled": true,
+                        "condition": {
+                            "relativePath": "../control",
+                            "showIfValueIn": ["button", "switch", "slider", "choice", "dropdown", "label", false]
+                        },
+                        "order": 3
+                    },
+                    "variant": {
+                        "title": "Button Style",
+                        "description": "How the button is drawn: 'filled' in the accent colour (the default, for the main command), 'tonal' lightly tinted, 'outlined' with a border, 'text' without one.",
+                        "type": "string",
+                        "enum": ["filled", "tonal", "outlined", "text"],
+                        "enumLabels": ["Filled", "Tonal", "Outlined", "Text"],
+                        "default": "filled",
+                        "dataDrivenDisabled": true,
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["button", false] },
+                        "order": 4
+                    },
+                    "color": {
+                        "title": "Color",
+                        "description": "Accent colour of this tool, such as red for a Stop button. Leave it empty to use the toolbar's Accent Color.",
+                        "type": "color",
+                        "dataDrivenDisabled": true,
+                        "condition": {
+                            "relativePath": "../control",
+                            "showIfValueIn": ["button", "switch", "slider", "choice", "dropdown", false]
+                        },
+                        "order": 5
+                    },
+                    "buttonValue": {
+                        "title": "Button Value",
+                        "description": "What a click writes, such as 'start' or '1'. Converted to the column's type. Leave it empty to write true into the column and to remove the URL parameter (a 'Show all' button). While the tool's Current Value or URL parameter equals it, the button is drawn as active, so several buttons on one column or parameter act as a mode selector.",
+                        "type": "string",
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["button", false] },
+                        "order": 6
+                    },
+                    "onValue": {
+                        "title": "On Value",
+                        "description": "What the switch writes when turned on, and the value that shows it on. Default true ('true' in a URL parameter, 1 in a numeric column).",
+                        "type": "string",
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["switch"] },
+                        "order": 7
+                    },
+                    "offValue": {
+                        "title": "Off Value",
+                        "description": "What the switch writes when turned off. Default false in a column; in a URL parameter an empty Off Value removes the parameter, so filtered widgets show everything while the switch is off.",
+                        "type": "string",
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["switch"] },
+                        "order": 8
+                    },
+                    "min": {
+                        "title": "Minimum",
+                        "description": "Lowest value of the slider. Default 0.",
+                        "type": "number",
+                        "dataDrivenDisabled": true,
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["slider"] },
+                        "order": 9
+                    },
+                    "max": {
+                        "title": "Maximum",
+                        "description": "Highest value of the slider. Default 100; a Maximum not above the Minimum is ignored.",
+                        "type": "number",
+                        "dataDrivenDisabled": true,
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["slider"] },
+                        "order": 10
+                    },
+                    "step": {
+                        "title": "Step",
+                        "description": "Distance between the values the slider can take, such as 1, 5 or 0.1. Default 1. Its decimals are the decimals shown.",
+                        "type": "number",
+                        "dataDrivenDisabled": true,
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["slider"] },
+                        "order": 11
+                    },
+                    "unit": {
+                        "title": "Unit",
+                        "description": "Unit shown after the slider's value, such as '%' or 'rpm'. Display only; the number is written without it.",
+                        "type": "string",
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["slider"] },
+                        "order": 12
+                    },
+                    "options": {
+                        "title": "Options",
+                        "description": "The choices of a choice group or dropdown, in order. Enter them, or bind them to a table with a label and a value column. An option with an empty value removes the URL parameter ('All') and writes an empty value into the column.",
+                        "type": "array",
+                        "condition": { "relativePath": "../control", "showIfValueIn": ["choice", "dropdown"] },
+                        "order": 13,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "label": {
+                                    "title": "Option Label",
+                                    "description": "Text shown for the option, such as 'Week'. Leave it empty to show the value.",
+                                    "type": "string",
+                                    "order": 1
+                                },
+                                "value": {
+                                    "title": "Option Value",
+                                    "description": "What picking the option writes, such as 'week'. In a URL parameter it must match the values of the filtered column exactly.",
+                                    "type": "string",
+                                    "order": 2
+                                },
+                                "icon": {
+                                    "title": "Option Icon",
+                                    "description": "Material Symbols icon shown for the option. In a tight bar a choice group shows only the icons.",
+                                    "type": "string",
+                                    "dataDrivenDisabled": true,
+                                    "order": 3
+                                }
+                            }
+                        }
+                    },
+                    "value": {
+                        "title": "Current Value",
+                        "description": "What is stored now, to show it on the tool: the switch position, the slider position, the picked option, or a button as active. Bind it to the latest value of the column the tool writes, filtered to the same record. After a click the tool keeps the new value for up to 10 seconds until this agrees, then shows what this reports. Without it the tool shows what was last set on this page. Ignored when URL Parameter is set, which the tool follows instead.",
+                        "type": "string",
+                        "condition": {
+                            "relativePath": "../control",
+                            "showIfValueIn": ["button", "switch", "slider", "choice", "dropdown", false]
+                        },
+                        "order": 14
+                    },
+                    "targetColumn": {
+                        "title": "Write to Column",
+                        "description": "The column the tool writes into: every click, release or pick publishes a new row to its table with this value, the Extra Columns and the matching Shared Columns. The app's backend receives the row by subscribing to the table. Can be combined with URL Parameter.",
+                        "type": "targetColumn",
+                        "dataDrivenDisabled": true,
+                        "condition": {
+                            "relativePath": "../control",
+                            "showIfValueIn": ["button", "switch", "slider", "choice", "dropdown", false]
+                        },
+                        "order": 15
+                    },
+                    "extraColumns": {
+                        "title": "Extra Columns",
+                        "description": "More columns of the row this tool writes, each with a fixed or bound value, such as a command name. While one of them has no value, the tool is disabled.",
+                        "type": "array",
+                        "dataDrivenDisabled": true,
+                        "condition": {
+                            "relativePath": "../control",
+                            "showIfValueIn": ["button", "switch", "slider", "choice", "dropdown", false]
+                        },
+                        "order": 16,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "targetColumn": {
+                                    "title": "Extra Column",
+                                    "description": "The column this value goes into, in the same table as Write to Column.",
+                                    "type": "targetColumn",
+                                    "dataDrivenDisabled": true,
+                                    "order": 1
+                                },
+                                "value": {
+                                    "title": "Extra Value",
+                                    "description": "What the tool writes into this column with every row: a constant, or bound to a column. Converted to the column's type (number, true/false).",
+                                    "type": "string",
+                                    "order": 2
+                                }
+                            }
+                        }
+                    },
+                    "parameterKey": {
+                        "title": "URL Parameter",
+                        "description": "The NAME of a URL parameter the tool sets to its value, such as 'period', and whose value it then shows. Every widget that should follow it needs a filterAnd condition with \"useFilter\": true and exactly this name as the bare \"value\", such as {\"column\": \"period\", \"operator\": \"=\", \"value\": \"period\", \"useFilter\": true}. While the parameter is removed, that condition is dropped and the widget shows everything. Each change is a step in the browser history.",
+                        "type": "string",
+                        "dataDrivenDisabled": true,
+                        "condition": {
+                            "relativePath": "../control",
+                            "showIfValueIn": ["button", "switch", "slider", "choice", "dropdown", false]
+                        },
+                        "order": 17
+                    },
+                    "confirmText": {
+                        "title": "Confirmation",
+                        "description": "A question asked before the tool writes, such as 'Stop the line?'. The value is written only after OK. Leave it empty to write at once. Use it for commands that are hard to undo: clicks in the widget editor's preview and the AI chat write real rows too.",
+                        "type": "string",
+                        "condition": {
+                            "relativePath": "../control",
+                            "showIfValueIn": ["button", "switch", "slider", "choice", "dropdown", false]
+                        },
+                        "order": 18
+                    }
+                }
+            }
+        }
+    }
+}

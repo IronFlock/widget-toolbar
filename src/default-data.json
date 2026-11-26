@@ -1,0 +1,45 @@
+{
+    "orientation": "horizontal",
+    "size": "normal",
+    "tools": [
+        {
+            "label": "Live",
+            "control": "switch",
+            "icon": "sensors",
+            "parameterKey": "live"
+        },
+        {
+            "control": "separator"
+        },
+        {
+            "label": "Period",
+            "control": "choice",
+            "parameterKey": "period",
+            "options": [
+                { "label": "Day", "value": "day" },
+                { "label": "Week", "value": "week" },
+                { "label": "Month", "value": "month" }
+            ]
+        },
+        {
+            "label": "Threshold",
+            "control": "slider",
+            "icon": "tune",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "unit": "%",
+            "parameterKey": "threshold"
+        },
+        {
+            "control": "spacer"
+        },
+        {
+            "label": "Show all",
+            "control": "button",
+            "icon": "filter_alt_off",
+            "variant": "outlined",
+            "parameterKey": "period"
+        }
+    ]
+}

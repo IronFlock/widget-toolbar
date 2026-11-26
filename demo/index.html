@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>widget-toolbar demo</title>
+        <!-- Studio's page loads both fonts; md-icon needs Material Symbols. -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block"
+        />
+        <style>
+            html,
+            body {
+                margin: 0;
+                min-height: 100%;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px;
+                box-sizing: border-box;
+                font-family: Roboto, Helvetica, Arial, sans-serif;
+                background: var(--re-background-color);
+                color: var(--re-text-color);
+            }
+
+            .controls {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px 16px;
+                align-items: center;
+                font-size: 14px;
+            }
+
+            /* Stands in for Studio's widget-item: the host paints the tile, and the
+               widget fills it. Drag the bottom-right corner to resize it. */
+            #tile {
+                resize: both;
+                overflow: hidden;
+                width: 900px;
+                height: 56px;
+                min-width: 20px;
+                min-height: 20px;
+                max-width: calc(100vw - 32px);
+                box-sizing: border-box;
+                border: 1px solid var(--re-tile-border-color);
+                border-radius: var(--re-tile-border-radius);
+                background-color: var(--re-tile-background-color);
+                color: var(--re-text-color);
+            }
+
+            #tile > * {
+                width: 100%;
+                height: 100%;
+            }
+
+            #parking {
+                display: none;
+            }
+
+            .state {
+                display: grid;
+                grid-template-columns: max-content 1fr;
+                gap: 4px 12px;
+                font-size: 13px;
+                font-family: ui-monospace, monospace;
+            }
+
+            #log {
+                margin: 0;
+                max-height: 260px;
+                overflow: auto;
+                font-size: 12px;
+                padding: 8px;
+                border: 1px solid var(--re-tile-border-color);
+                border-radius: 8px;
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="controls">
+            <label>Theme <select id="theme"></select></label>
+            <label>
+                Config
+                <select id="config">
+                    <option value="default">default-data.json (URL parameters)</option>
+                    <option value="app">app bar (table writes)</option>
+                    <option value="strip">vertical strip</option>
+                    <option value="empty">empty ({})</option>
+                    <option value="broken">malformed</option>
+                </select>
+            </label>
+            <label>
+                Size
+                <select id="size">
+                    <option value="">as configured</option>
+                    <option value="small">small</option>
+                    <option value="normal">normal</option>
+                    <option value="big">big</option>
+                </select>
+            </label>
+            <label>
+                Button shape
+                <select id="shape">
+                    <option value="">as configured</option>
+                    <option value="round">round</option>
+                    <option value="rounded">rounded</option>
+                    <option value="square">square</option>
+                </select>
+            </label>
+            <label
+                >Row echo
+                <select id="echo">
+                    <option value="800">after 0.8 s</option>
+                    <option value="0">never (shows the 10 s fallback)</option>
+                </select></label
+            >
+            <span
+                >Tile
+                <button data-size="900x56">900 × 56</button>
+                <button data-size="400x56">400 × 56</button>
+                <button data-size="150x56">150 × 56</button>
+                <button data-size="40x40">40 × 40</button>
+                <button data-size="220x480">220 × 480</button>
+                <button data-size="64x320">64 × 320</button>
+            </span>
+            <button id="back">Back</button>
+            <button id="move">Move tile (detach + attach)</button>
+        </div>
+        <div id="tile"></div>
+        <div id="parking"></div>
+        <div class="state">
+            <span>route</span><span id="route"></span>
+            <span>table</span><span id="table"></span>
+        </div>
+        <pre id="log"></pre>
+
+        <script type="module">
+            import { render } from 'lit'
+            import { html, unsafeStatic } from 'lit/static-html.js'
+            import pkg from '../package.json'
+            import defaults from '../src/default-data.json'
+            import light from './themes/light.json'
+            import dark from './themes/dark.json'
+            import '../src/widget-toolbar.ts'
+
+            const tag = unsafeStatic(`widget-toolbar-${pkg.version}`)
+            const tile = document.getElementById('tile')
+            const themes = { '---': undefined, light, dark }
+
+            // A column as the targetColumn picker stores it.
+            const col = (column, dataType = 'string') => ({
+                swarm_app_databackend_key: 1,
+                tablename: 'machine_commands',
+                column,
+                column_name: column,
+                dataType
+            })
+            // A binding to the latest stored value of a column, resolved below.
+            const bind = (column) => ({ $bind: column })
+
+            const appTools = [
+                { label: 'Start', icon: 'play_arrow', buttonValue: 'start', targetColumn: col('command'), value: bind('command') },
+                {
+                    label: 'Stop',
+                    icon: 'stop',
+                    buttonValue: 'stop',
+                    color: '#d32f2f',
+                    confirmText: 'Stop the line?',
+                    targetColumn: col('command'),
+                    value: bind('command')
+                },
+                { control: 'separator' },
+                { label: 'Auto', control: 'switch', icon: 'autoplay', targetColumn: col('auto', 'boolean'), value: bind('auto') },
+                {
+                    label: 'Speed',
+                    control: 'slider',
+                    icon: 'speed',
+                    min: 0,
+                    max: 3000,
+                    step: 50,
+                    unit: 'rpm',
+                    targetColumn: col('speed', 'numeric'),
+                    value: bind('speed')
+                },
+                {
+                    label: 'Mode',
+                    control: 'choice',
+                    targetColumn: col('mode'),
+                    value: bind('mode'),
+                    options: [
+                        { label: 'Eco', value: 'eco', icon: 'eco' },
+                        { label: 'Normal', value: 'normal', icon: 'balance' },
+                        { label: 'Boost', value: 'boost', icon: 'bolt' }
+                    ]
+                },
+                { control: 'spacer' },
+                {
+                    label: 'Recipe',
+                    control: 'dropdown',
+                    icon: 'receipt_long',
+                    targetColumn: col('recipe'),
+                    value: bind('recipe'),
+                    options: [
+                        { label: 'Recipe A', value: 'A' },
+                        { label: 'Recipe B (long name)', value: 'B' },
+                        { label: 'Recipe C', value: 'C' }
+                    ]
+                },
+                {
+                    label: 'Reset',
+                    icon: 'restart_alt',
+                    variant: 'outlined',
+                    buttonValue: 'reset',
+                    confirmText: 'Reset all counters?',
+                    targetColumn: col('command')
+                }
+            ]
+            const app = {
+                sharedColumns: [{ targetColumn: col('machine_id'), value: 'M-1' }],
+                tools: appTools
+            }
+            const strip = { ...app, orientation: 'vertical', size: 'small' }
+
+            // A config the widget has to survive: nulls, wrong types, null slots.
+            const broken = {
+                orientation: 42,
+                size: 'huge',
+                sharedColumns: 'x',
+                tools: [
+                    null,
+                    { control: 'slider', min: 'a', max: -5, step: 0, value: 'n/a' },
+                    { control: 'choice', options: [null, { value: 3 }, { label: 7 }] },
+                    { control: 'switch', targetColumn: 'not-a-column', parameterKey: 9 },
+                    { control: 'dropdown', options: 'none' },
+                    7
+                ]
+            }
+            const configs = { default: defaults, app, strip, empty: {}, broken }
+
+            // The table the demo's "backend" keeps: the latest value per column.
+            const table = {}
+            let theme = { theme_name: 'light', theme_object: light }
+            let config = defaults
+            const history = ['']
+            let route = ''
+
+            function log(name, detail) {
+                // undefined removes a URL parameter; show it rather than drop it.
+                const json = JSON.stringify(detail, (_, v) => (v === undefined ? '<remove>' : v))
+                const line = `${new Date().toLocaleTimeString()}  ${name}  ${json}\n`
+                const el = document.getElementById('log')
+                el.textContent = line + el.textContent
+            }
+
+            // Like Studio: replace every binding by data, in a NEW object each time.
+            function resolve(value) {
+                if (Array.isArray(value)) return value.map(resolve)
+                if (value && typeof value === 'object') {
+                    if ('$bind' in value) return table[value.$bind] ?? null
+                    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, resolve(v)]))
+                }
+                return value
+            }
+
+            function draw() {
+                document.getElementById('route').textContent = route || '(board root)'
+                document.getElementById('table').textContent = JSON.stringify(table)
+                // The Size and Button shape controls override the config's
+                // own values, as an edit in Studio's config editor would.
+                let inputData = resolve(config)
+                for (const key of ['size', 'shape']) {
+                    const value = document.getElementById(key).value
+                    if (value && inputData && typeof inputData === 'object') inputData = { ...inputData, [key]: value }
+                }
+                render(
+                    html`<${tag}
+                        .inputData=${inputData}
+                        .theme=${theme}
+                        .route=${route}
+                        @param-submit=${onParams}
+                        @data-submit=${onData}
+                    ></${tag}>`,
+                    tile
+                )
+            }
+
+            // Studio's dashboard-navigator: merge into the query; undefined removes.
+            function onParams(event) {
+                log('param-submit', event.detail)
+                const params = new URLSearchParams(route.split('?')[1] ?? '')
+                for (const [key, value] of Object.entries(event.detail.params)) {
+                    if (value === undefined || value === null) params.delete(key)
+                    else params.set(key, value)
+                }
+                const query = params.toString()
+                const next = query ? `?${query}` : ''
+                if (next === route) return
+                route = next
+                history.push(route)
+                draw()
+            }
+
+            // Studio's writeRows: one row per table; the binding echoes it back later.
+            function onData(event) {
+                log('data-submit', event.detail)
+                const delay = Number(document.getElementById('echo').value)
+                if (!delay) return
+                setTimeout(() => {
+                    for (const item of event.detail) table[item.column_name] = item.value
+                    draw()
+                }, delay)
+            }
+
+            function applyBoardStyle(themeObject) {
+                const line = themeObject?.timeAxis?.splitLine?.lineStyle?.color
+                const style = {
+                    '--re-background-color': themeObject?.backgroundColor ?? '#fefefe',
+                    '--re-text-color': themeObject?.title?.textStyle?.color ?? '#334d5c',
+                    '--re-tile-background-color': themeObject?.backgroundColor ?? '#ffffff80',
+                    '--re-tile-border-color': (Array.isArray(line) ? line[0] : line) ?? '#fefefe',
+                    '--re-tile-border-radius': '8px'
+                }
+                for (const [name, value] of Object.entries(style)) document.body.style.setProperty(name, value)
+            }
+
+            const themeSelect = document.getElementById('theme')
+            for (const name of Object.keys(themes)) themeSelect.add(new Option(name, name, false, name === 'light'))
+            themeSelect.addEventListener('change', () => {
+                theme = { theme_name: themeSelect.value, theme_object: themes[themeSelect.value] }
+                applyBoardStyle(theme.theme_object)
+                draw()
+            })
+            document.getElementById('config').addEventListener('change', (e) => {
+                config = configs[e.target.value]
+                if (e.target.value === 'strip') setTile(220, 480)
+                else if (tile.offsetHeight > 200) setTile(900, 56)
+                draw()
+            })
+            document.getElementById('size').addEventListener('change', draw)
+            document.getElementById('shape').addEventListener('change', draw)
+            function setTile(width, height) {
+                tile.style.width = `${width}px`
+                tile.style.height = `${height}px`
+            }
+            for (const button of document.querySelectorAll('[data-size]')) {
+                button.addEventListener('click', () => setTile(...button.dataset.size.split('x').map(Number)))
+            }
+            document.getElementById('back').addEventListener('click', () => {
+                if (history.length < 2) return
+                history.pop()
+                route = history.at(-1)
+                draw()
+            })
+            // Studio reorders tiles by moving their DOM nodes: detach and
+            // re-attach in one task.
+            document.getElementById('move').addEventListener('click', () => {
+                const element = tile.firstElementChild
+                document.getElementById('parking').append(element)
+                tile.append(element)
+            })
+
+            applyBoardStyle(light)
+            draw()
+        </script>
+    </body>
+</html>
