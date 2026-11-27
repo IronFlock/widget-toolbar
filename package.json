@@ -3,7 +3,7 @@
     "description": "IronFlock board widget: a responsive toolbar of buttons, switches, sliders and choices that write table columns and set URL parameters",
     "license": "MIT",
     "author": "IronFlock GmbH",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "engines": {
         "node": ">=24.9.0",
         "npm": ">=10.0.2"
