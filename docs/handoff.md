@@ -57,8 +57,10 @@ uncommitted, on topic branches in the other repositories.
    and `setup-trusted-publishing.sh` without `--bootstrap` for the npm trust
    rule (2FA). 1.0.0 has no git tag or GitHub release; the release App
    creates them from the next release on.
-   The next release (1.0.1) carries new thumbnails: the horizontal toolbar
-   alone, centred, instead of the three-tile board scene.
+   1.0.1 (released 2026-11-27, the first release through CI) carries new
+   thumbnails: the horizontal toolbar alone, centred, instead of the
+   three-tile board scene. The next release puts it on the palette's flat
+   `#f5f5f5`, without a white tile, like the other widgets' thumbnails.
 2. **After the publish**, done and uncommitted:
    - studio, branch `add-widget-toolbar` (release PR #142): both lockfiles
      list widget-toolbar 1.0.0; a clean `bun install --frozen-lockfile` and
